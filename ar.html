@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تسمية الجزيئات – نماذج ثلاثية الأبعاد</title>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<script src="models.js"></script>
+<style>
+  :root { --petrol:#0B4F6C; --coral:#F4845F; --turq:#3AAFA9; --bg:#F7FAF9; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: "Sakkal Majalla", "Segoe UI", Tahoma, Arial, sans-serif; background:var(--bg); color:#1F3A5F; }
+  header { background:var(--petrol); color:#fff; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:28px; }
+  header a { color:#fff; text-decoration:none; background:var(--coral); padding:8px 16px; border-radius:20px; font-size:18px; }
+  .wrap { display:grid; grid-template-columns: 300px 1fr; gap:16px; padding:16px; height:calc(100vh - 70px); }
+  .list { overflow:auto; display:flex; flex-direction:column; gap:10px; }
+  .list button { font:inherit; font-size:22px; text-align:right; padding:10px 14px; border-radius:14px; border:2px solid var(--turq); background:#fff; color:var(--petrol); cursor:pointer; }
+  .list button.on { background:var(--turq); color:#fff; }
+  .list button small { display:block; font-size:16px; opacity:.8; }
+  .stage { background:#fff; border-radius:18px; border:2px solid var(--turq); position:relative; overflow:hidden; display:flex; flex-direction:column; }
+  model-viewer { flex:1; width:100%; background: radial-gradient(circle at 50% 40%, #ffffff, #e8f4f3); --poster-color: transparent; }
+  .info { padding:12px 18px; border-top:2px dashed var(--turq); display:flex; gap:18px; align-items:center; flex-wrap:wrap; font-size:24px; }
+  .formula { font-family: Calibri, Arial, sans-serif; font-size:40px; font-weight:bold; color:var(--petrol); direction:ltr; unicode-bidi:isolate; }
+  .name { font-size:30px; font-weight:bold; }
+  .note { background:#FFF4EE; color:#B7472A; border-radius:14px; padding:4px 12px; font-size:20px; }
+  .count { font-size:20px; color:#555; }
+  .legend { display:flex; gap:10px; flex-wrap:wrap; font-size:18px; }
+  .legend span { display:inline-flex; align-items:center; gap:6px; }
+  .dot { width:16px; height:16px; border-radius:50%; display:inline-block; border:1px solid #999; }
+  .reveal { font:inherit; font-size:20px; background:var(--coral); color:#fff; border:0; border-radius:18px; padding:6px 14px; cursor:pointer; }
+  .ar-btn { position:absolute; bottom:14px; left:14px; background:var(--coral); color:#fff; border:0; border-radius:20px; padding:10px 18px; font:inherit; font-size:20px; }
+  @media (max-width: 760px) { .wrap { grid-template-columns:1fr; height:auto; } .list { flex-direction:row; overflow-x:auto; } .list button { min-width:150px; } model-viewer { height:60vh; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔬 تسمية الجزيئات – نماذج ثلاثية الأبعاد</h1>
+  <a href="index.html">الصفحة الرئيسة</a>
+</header>
+<div class="wrap">
+  <div class="list" id="list"></div>
+  <div class="stage">
+    <model-viewer id="mv" camera-controls auto-rotate rotation-per-second="20deg" shadow-intensity="0.8" exposure="1.05"
+      ar ar-modes="webxr scene-viewer quick-look" interaction-prompt="auto" alt="نموذج جزيء">
+      <button slot="ar-button" class="ar-btn">📱 ضعيه في الفصل (AR)</button>
+    </model-viewer>
+    <div class="info">
+      <span class="formula" id="formula"></span>
+      <span class="count" id="count"></span>
+      <button class="reveal" id="reveal">أظهري الاسم</button>
+      <span class="name" id="name" style="visibility:hidden"></span>
+      <span class="note" id="note"></span>
+      <span class="legend" id="legend"></span>
+    </div>
+  </div>
+</div>
+<script>
+  const order = ['N2O', 'CO2', 'NF3', 'CCl4', 'SO2', 'H2O', 'NH3', 'HCl', 'HNO3', 'H2SO4'];
+  const list = document.getElementById('list'), mv = document.getElementById('mv');
+  const urls = {};
+  function show(key) {
+    const m = MOLECULES[key];
+    urls[key] = urls[key] || moleculeURL(key);
+    mv.src = urls[key];
+    document.getElementById('formula').innerHTML = m.formula;
+    const nm = document.getElementById('name'); nm.textContent = m.title; nm.style.visibility = 'hidden';
+    document.getElementById('note').textContent = m.note || '';
+    document.getElementById('note').style.display = m.note ? '' : 'none';
+    const counts = {}; m.atoms.forEach(a => counts[a[0]] = (counts[a[0]] || 0) + 1);
+    document.getElementById('count').textContent = Object.entries(counts).map(([s, n]) => `${ELEMENTS[s].name}: ${n}`).join('   |   ');
+    document.getElementById('legend').innerHTML = Object.keys(counts).map(s => {
+      const c = ELEMENTS[s].color.map(v => Math.round(v * 255)).join(',');
+      return `<span><i class="dot" style="background:rgb(${c})"></i><b dir="ltr">${s}</b></span>`; }).join('');
+    [...list.children].forEach(b => b.classList.toggle('on', b.dataset.k === key));
+  }
+  order.forEach(k => {
+    const b = document.createElement('button'); b.dataset.k = k;
+    b.innerHTML = `<span dir="ltr" style="font-family:Calibri,Arial;font-weight:bold">${MOLECULES[k].formula}</span><small>${MOLECULES[k].note || '&nbsp;'}</small>`;
+    b.onclick = () => show(k); list.appendChild(b);
+  });
+  document.getElementById('reveal').onclick = () => document.getElementById('name').style.visibility = 'visible';
+  show(new URLSearchParams(location.search).get('m') || 'N2O');
+</script>
+</body>
+</html>
