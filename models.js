@@ -60,7 +60,7 @@ function sphereGeom(seg = 24, ring = 16) {
   }
   for (let y = 0; y < ring; y++) for (let x = 0; x < seg; x++) {
     const a = y * (seg + 1) + x, b = a + seg + 1;
-    idx.push(a, b, a + 1, b, b + 1, a + 1);
+    idx.push(a, a + 1, b, b, a + 1, b + 1);
   }
   return { pos, nor, idx };
 }
@@ -106,9 +106,9 @@ function buildGLB(mol) {
   const cI = addArray(cyl.idx, 0, 34963, 5123, cyl.idx.length, 'SCALAR');
 
   const materials = [], matIndex = {};
-  function mat(key, color, rough = 0.35) {
+  function mat(key, color, rough = 0.45) {
     if (matIndex[key] === undefined) {
-      materials.push({ name: key, pbrMetallicRoughness: { baseColorFactor: [...color, 1], metallicFactor: 0.05, roughnessFactor: rough } });
+      materials.push({ name: key, pbrMetallicRoughness: { baseColorFactor: [...color, 1], metallicFactor: 0, roughnessFactor: rough } });
       matIndex[key] = materials.length - 1;
     }
     return matIndex[key];
